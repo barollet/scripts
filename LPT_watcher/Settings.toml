@@ -1,0 +1,12 @@
+# websocket ethereum node endpoint
+# public infura project id
+node_endpoint = "wss://mainnet.infura.io/ws/v3/8b1fdc42b326464f951a2e40a12804d9"
+
+# LTP recipient address
+recipient_address = "A6A9eB29e786B5233bD99C0bA28bE882fe954a0e"
+
+# round manager proxy address
+proxy_address = "3984fc4ceeef1739135476f625d36d6c35c40dc3"
+
+# delay in block before triggering an alert
+block_delay_alert = 200
