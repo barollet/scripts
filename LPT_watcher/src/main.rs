@@ -1,35 +1,12 @@
 extern crate web3;
 
+mod round_detector;
+
 use web3::contract::Contract;
 use web3::futures::{Future, Stream};
-use web3::types::{BlockHeader, FilterBuilder};
+use web3::types::FilterBuilder;
 
-#[derive(Default)]
-struct RoundDetector {
-    round_end_block: usize, // end of the current round in block, 0 means uninitialized
-    current_round: usize,
-    current_round_initialized: bool,
-    current_round_locked: bool,
-
-    transaction_has_to_be_done: bool,
-}
-
-impl RoundDetector {
-    // Keeping track of block numbers and wait for new round initialization
-    fn watch_block_number(&mut self, block: BlockHeader) {
-        let block_number = block.number.unwrap().as_usize();
-        println!("{}", block_number);
-
-        // if the round detector is uninitialized, initialize it.
-        if self.round_end_block == 0 {
-            //
-        }
-        // else wait for the end of the round
-        else if block_number >= self.round_end_block {
-            // triggering end of round
-        }
-    }
-}
+use round_detector::RoundDetector;
 
 #[tokio::main]
 async fn main() {
@@ -73,7 +50,7 @@ async fn main() {
         .wait()
         .expect("Cannot subscribe to new block header");
 
-    // Deploy round manager contract
+    // Round manager contract interface
     let contract_interface = Contract::from_json(
         web3.eth(),
         settings
@@ -83,26 +60,28 @@ async fn main() {
             .expect("Cannot parse proxy address"),
         include_bytes!("../build/RoundsManager.abi"),
     )
-    .expect("Cannot deploy round manager interface");
+    .expect("Cannot instanciate round manager interface");
 
-    println!("Round manager contract deployed");
+    println!("Round manager contract instanciated");
 
     // Initializing round detector
-    let mut round_detector = RoundDetector::default();
+    let mut round_detector = RoundDetector::from_contract(contract_interface);
 
-    // TODO clean code
+    println!("Round detector initialized, runnning...");
+
     // Watching Livepeer rounds
-    let a = (&mut new_block_subscription).for_each(|x| {
+    let round_detector_stream = (&mut new_block_subscription).for_each(|x| {
         round_detector.watch_block_number(x);
         Ok(())
     });
 
-    let b = (&mut reward_subscription).for_each(|x| {
+    let reward_stream = (&mut reward_subscription).for_each(|x| {
         println!("{:?}", x);
         Ok(())
     });
 
-    let c = a.select(b);
+    let main_loop = round_detector_stream.select(reward_stream);
 
-    c.wait();
+    // We wait indefinitely
+    main_loop.wait();
 }
