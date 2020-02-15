@@ -1,6 +1,6 @@
 use web3::contract::{self, Contract};
 use web3::futures::Future;
-use web3::types::{BlockHeader, U256};
+use web3::types::U256;
 
 // For now we are restricted to websocket, we will have to do a generic RoundDetector if we want to
 // use other methods
@@ -8,22 +8,22 @@ pub type ContractItf = Contract<web3::transports::WebSocket>;
 
 pub struct RoundDetector {
     round_end_block: U256, // end of the current round in block
-    security_window_end_block: U256,
+    safety_window_end_block: U256,
     current_round: U256,
 
     contract_interface: ContractItf, // round manager smartcontract interface to keep track of the contract state
-    security_window: U256,
+    safety_window: U256,
 }
 
 impl RoundDetector {
-    pub fn from_contract(contract_interface: ContractItf, security_window: U256) -> Self {
+    pub fn from_contract(contract_interface: ContractItf, safety_window: U256) -> Self {
         let mut round_detector = RoundDetector {
             round_end_block: U256::zero(),
-            security_window_end_block: U256::zero(),
+            safety_window_end_block: U256::zero(),
             current_round: U256::zero(),
 
             contract_interface,
-            security_window,
+            safety_window,
         };
 
         round_detector.compute_round_security_window_end();
@@ -37,7 +37,7 @@ impl RoundDetector {
         let round_length: U256 = self.query_constant_value("roundLength");
 
         self.round_end_block = start_block + round_length;
-        self.security_window_end_block = start_block + self.security_window;
+        self.safety_window_end_block = start_block + self.safety_window;
     }
 
     fn fetch_current_round(&self) -> U256 {
@@ -74,6 +74,6 @@ impl RoundDetector {
 
     // Returns if the security window is finished
     pub fn reached_security_window(&self, block_number: U256) -> bool {
-        block_number == self.security_window_end_block
+        block_number == self.safety_window_end_block
     }
 }

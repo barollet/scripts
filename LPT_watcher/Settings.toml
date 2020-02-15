@@ -9,7 +9,7 @@ recipient_address = "A6A9eB29e786B5233bD99C0bA28bE882fe954a0e"
 proxy_address = "3984fc4ceeef1739135476f625d36d6c35c40dc3"
 
 # delay in block before triggering an alert
-block_delay_alert = 50
+block_alert_delay = 50
 
 # sets the starting state of the bot
-current_round_transaction_done: true,
+current_round_transaction_done = true
