@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use web3::contract::Contract;
 use web3::futures::{Future, Stream};
-use web3::types::FilterBuilder;
+use web3::types::{FilterBuilder, U256};
 
 use round_detector::RoundDetector;
 use transaction_detector::TransactionDetector;
@@ -77,19 +77,29 @@ async fn main() {
 
     // Initializing transaction detector
     let transaction_detector = TransactionDetector::new();
+    let security_window: U256 = settings.get_int("block_delay_alert").unwrap_or(50).into();
 
     // Initializing round detector
-    let mut round_detector = RoundDetector::from_contract(contract_interface);
+    let mut round_detector = RoundDetector::from_contract(contract_interface, security_window);
 
     println!("Round detector initialized, runnning...");
 
     // Watching Livepeer rounds
-    let round_detector_stream = (&mut new_block_subscription).for_each(|block_number| {
+    let round_detector_stream = (&mut new_block_subscription).for_each(|block_header| {
+        let block_number: U256 = block_header.number.unwrap().as_usize().into();
         if round_detector.has_new_round_started(block_number) {
-            // Check that the current round transaction has been done
-
+            // If the transaction was not done we missed the call
+            if !current_round_transaction_done.load(Ordering::Acquire) {
+                println!("Missed reward call");
+            }
             // set the transaction as not done for this new round
             current_round_transaction_done.store(false, Ordering::Release);
+        } else if round_detector.reached_security_window(block_number) {
+            // Checks that the transaction has be done, otherwise triggers an alert
+            if !current_round_transaction_done.load(Ordering::Acquire) {
+                // Triggers an alert
+                println!("Transaction has to be done");
+            }
         }
         Ok(())
     });

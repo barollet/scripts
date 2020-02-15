@@ -8,31 +8,36 @@ pub type ContractItf = Contract<web3::transports::WebSocket>;
 
 pub struct RoundDetector {
     round_end_block: U256, // end of the current round in block
+    security_window_end_block: U256,
     current_round: U256,
 
     contract_interface: ContractItf, // round manager smartcontract interface to keep track of the contract state
+    security_window: U256,
 }
 
 impl RoundDetector {
-    pub fn from_contract(contract_interface: ContractItf) -> Self {
+    pub fn from_contract(contract_interface: ContractItf, security_window: U256) -> Self {
         let mut round_detector = RoundDetector {
             round_end_block: U256::zero(),
+            security_window_end_block: U256::zero(),
             current_round: U256::zero(),
 
             contract_interface,
+            security_window,
         };
 
-        round_detector.compute_round_end();
+        round_detector.compute_round_security_window_end();
         round_detector.current_round = round_detector.fetch_current_round();
 
         round_detector
     }
 
-    fn compute_round_end(&mut self) {
+    fn compute_round_security_window_end(&mut self) {
         let start_block: U256 = self.query_constant_value("currentRoundStartBlock");
         let round_length: U256 = self.query_constant_value("roundLength");
 
         self.round_end_block = start_block + round_length;
+        self.security_window_end_block = start_block + self.security_window;
     }
 
     fn fetch_current_round(&self) -> U256 {
@@ -48,16 +53,14 @@ impl RoundDetector {
 
     // Keeping track of block numbers and wait for new round initialization
     // Returns wether a new round start
-    pub fn has_new_round_started(&mut self, block: BlockHeader) -> bool {
-        let block_number: U256 = block.number.unwrap().as_usize().into();
-
+    pub fn has_new_round_started(&mut self, block_number: U256) -> bool {
         // wait for the end of the round
         if block_number >= self.round_end_block {
             // we wait for the round number to increment, panic if the number is not incremented
             if self.fetch_current_round() == self.current_round + 1 {
                 // A new round started
                 self.current_round = self.current_round + 1;
-                self.compute_round_end();
+                self.compute_round_security_window_end();
 
                 println!("Started round {}", self.current_round);
 
@@ -67,5 +70,10 @@ impl RoundDetector {
             }
         }
         false
+    }
+
+    // Returns if the security window is finished
+    pub fn reached_security_window(&self, block_number: U256) -> bool {
+        block_number == self.security_window_end_block
     }
 }
