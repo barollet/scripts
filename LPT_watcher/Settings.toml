@@ -10,3 +10,5 @@ proxy_address = "3984fc4ceeef1739135476f625d36d6c35c40dc3"
 
 # delay in block before triggering an alert
 block_delay_alert = 200
+
+current_round_transaction_done: true,

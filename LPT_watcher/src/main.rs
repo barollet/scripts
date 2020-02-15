@@ -1,12 +1,16 @@
 extern crate web3;
 
 mod round_detector;
+mod transaction_detector;
+
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use web3::contract::Contract;
 use web3::futures::{Future, Stream};
 use web3::types::FilterBuilder;
 
 use round_detector::RoundDetector;
+use transaction_detector::TransactionDetector;
 
 #[tokio::main]
 async fn main() {
@@ -43,6 +47,13 @@ async fn main() {
 
     println!("Subscribed to reward() call");
 
+    // Shared value tracking if the reward call has been done
+    let current_round_transaction_done = AtomicBool::new(
+        settings
+            .get_bool("current_round_transaction_done")
+            .unwrap_or(true),
+    );
+
     // Subscribing to new block header
     let mut new_block_subscription = web3
         .eth_subscribe()
@@ -64,19 +75,33 @@ async fn main() {
 
     println!("Round manager contract instanciated");
 
+    // Initializing transaction detector
+    let transaction_detector = TransactionDetector::new();
+
     // Initializing round detector
     let mut round_detector = RoundDetector::from_contract(contract_interface);
 
     println!("Round detector initialized, runnning...");
 
     // Watching Livepeer rounds
-    let round_detector_stream = (&mut new_block_subscription).for_each(|x| {
-        round_detector.watch_block_number(x);
+    let round_detector_stream = (&mut new_block_subscription).for_each(|block_number| {
+        if round_detector.has_new_round_started(block_number) {
+            // Check that the current round transaction has been done
+
+            // set the transaction as not done for this new round
+            current_round_transaction_done.store(false, Ordering::Release);
+        }
         Ok(())
     });
 
-    let reward_stream = (&mut reward_subscription).for_each(|x| {
-        println!("{:?}", x);
+    let reward_stream = (&mut reward_subscription).for_each(|log| {
+        // if the transaction is a success
+        if transaction_detector.has_valid_transaction_been_made(&web3, log) {
+            println!("Transaction success");
+            // sets the transaction as done
+            current_round_transaction_done.store(true, Ordering::Release);
+        }
+
         Ok(())
     });
 

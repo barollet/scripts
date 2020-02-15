@@ -23,7 +23,7 @@ impl RoundDetector {
         };
 
         round_detector.compute_round_end();
-        round_detector.current_round = round_detector.query_constant_value("currentRound");
+        round_detector.current_round = round_detector.fetch_current_round();
 
         round_detector
     }
@@ -35,6 +35,10 @@ impl RoundDetector {
         self.round_end_block = start_block + round_length;
     }
 
+    fn fetch_current_round(&self) -> U256 {
+        self.query_constant_value("currentRound")
+    }
+
     fn query_constant_value<T: contract::tokens::Tokenizable>(&self, value: &str) -> T {
         self.contract_interface
             .query(value, (), None, contract::Options::default(), None)
@@ -43,13 +47,25 @@ impl RoundDetector {
     }
 
     // Keeping track of block numbers and wait for new round initialization
-    pub fn watch_block_number(&mut self, block: BlockHeader) {
+    // Returns wether a new round start
+    pub fn has_new_round_started(&mut self, block: BlockHeader) -> bool {
         let block_number: U256 = block.number.unwrap().as_usize().into();
-        println!("{}", block_number);
 
-        // else wait for the end of the round
+        // wait for the end of the round
         if block_number >= self.round_end_block {
-            // triggering end of round
+            // we wait for the round number to increment, panic if the number is not incremented
+            if self.fetch_current_round() == self.current_round + 1 {
+                // A new round started
+                self.current_round = self.current_round + 1;
+                self.compute_round_end();
+
+                println!("Started round {}", self.current_round);
+
+                return true;
+            } else if self.fetch_current_round() > self.current_round {
+                panic!("Skipped a round in LPT rewards");
+            }
         }
+        false
     }
 }
