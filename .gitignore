@@ -1,3 +1,2 @@
-lpt_watcher/Settings.toml
-lpt_watcher/Cargo.lock
-lpt_watcher/target
+*/Cargo.lock
+*/target
