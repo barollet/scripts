@@ -12,3 +12,5 @@ Nothing has to be done appart from cloning the repository.
 # Running
 
 Run `cargo run --release` in this directory to launch the bot.
+
+If you want to redirect stdout to a discord webhook use the `log_dispatcher` script.
