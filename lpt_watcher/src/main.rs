@@ -52,6 +52,10 @@ async fn main() {
     let round_detector_stream = (&mut new_block_subscription).for_each(|block_header| {
         let block_number: U256 = block_header.number.unwrap().as_usize().into();
         if round_detector.has_new_round_started(block_number) {
+            println!(
+                "Started new round at {}",
+                Utc::now().format("%Y-%m-%d %H:%M:%S").to_string()
+            );
             // If the transaction was not done we missed the call
             if !current_round_transaction_done.load(Ordering::Acquire) {
                 println!("Missed reward call");
