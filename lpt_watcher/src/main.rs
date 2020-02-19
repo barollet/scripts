@@ -46,6 +46,9 @@ async fn main() {
 
     eprintln!("Running...");
 
+    // Test stdout
+    println!("Testing standard output");
+
     // Watching Livepeer rounds
     let round_detector_stream = (&mut new_block_subscription).for_each(|block_header| {
         let block_number: U256 = block_header.number.unwrap().as_usize().into();
