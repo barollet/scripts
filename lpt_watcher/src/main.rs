@@ -1,5 +1,3 @@
-#![feature(async_closure)]
-
 mod initialization;
 mod round_detector;
 mod transaction_detector;
