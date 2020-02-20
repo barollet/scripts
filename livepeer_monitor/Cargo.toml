@@ -1,6 +1,6 @@
 [package]
-name = "lpt_watcher"
-version = "0.1.0"
+name = "livepeer_monitor"
+version = "1.0.0"
 authors = ["Theo Barollet <theo.barollet@ensimag.fr>"]
 edition = "2018"
 

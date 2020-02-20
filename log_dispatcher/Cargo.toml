@@ -1,6 +1,6 @@
 [package]
 name = "log_dispatcher"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Theo Barollet <theo.barollet@ensimag.fr>"]
 edition = "2018"
 
