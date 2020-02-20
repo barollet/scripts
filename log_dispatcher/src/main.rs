@@ -6,13 +6,13 @@ fn main() {
     // loading settings
     let mut settings = config::Config::new();
     settings
-        .merge(config::File::with_name("Settings"))
+        .merge(config::File::with_name("LogDispatcherSettings"))
         .expect("Cannot load config from Settings.toml");
     let client = Client::new();
 
     let url = settings
-        .get_str("discord_webhook_url")
-        .expect("Cannot load url from config.");
+        .get_str("webhook_url")
+        .expect("Cannot load webhook url from config.");
 
     // Sending test request
     let form = Form::new().text("content", "Webhook collector started running.");

@@ -59,7 +59,7 @@ async fn main() {
             );
             // If the transaction was not done we missed the call
             if !current_round_transaction_done.load(Ordering::Acquire) {
-                println!("Missed reward call");
+                println!("Missed reward call :exclamation: :exclamation:");
             }
             // set the transaction as not done for this new round
             current_round_transaction_done.store(false, Ordering::Release);
@@ -67,7 +67,7 @@ async fn main() {
             // Checks that the transaction has be done, otherwise triggers an alert
             if !current_round_transaction_done.load(Ordering::Acquire) {
                 // Triggers an alert on standard output
-                println!("Transaction has to be done");
+                println!("Transaction has to be done :exclamation: :exclamation:");
             }
         }
         Ok(())

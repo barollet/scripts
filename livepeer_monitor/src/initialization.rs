@@ -22,7 +22,7 @@ impl Init {
     pub fn load_config() -> Self {
         let mut settings = config::Config::new();
         settings
-            .merge(config::File::with_name("Settings"))
+            .merge(config::File::with_name("LivepeerMonitorSettings"))
             .expect("Cannot load config from Settings.toml");
 
         let websocket_endpoint = settings
