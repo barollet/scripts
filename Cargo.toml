@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "log_dispatcher",
+    "livepeer_monitor",
+]
