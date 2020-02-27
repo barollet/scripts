@@ -1,6 +1,5 @@
 # websocket ethereum node endpoint
-# public infura project id
-node_endpoint = "wss://mainnet.infura.io/ws/v3/8b1fdc42b326464f951a2e40a12804d9"
+node_endpoint = "wss://<etherum_node_endpoint>"
 
 # LPT recipient address
 recipient_address = "A6A9eB29e786B5233bD99C0bA28bE882fe954a0e"
