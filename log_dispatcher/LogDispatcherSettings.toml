@@ -1,2 +1,5 @@
 # any webhook url to post stdio in a webhook
-webhook_url = "https://discordapp.com/api/webhooks/<id>/<token>"
+telegram_token = "token"
+
+# telegram chat id
+telegram_chat_id = 123

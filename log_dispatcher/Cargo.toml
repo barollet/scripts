@@ -9,4 +9,6 @@ edition = "2018"
 [dependencies]
 config = "0.10.1"
 reqwest = { version = "0.10", features = ["blocking"] }
-
+telegram-bot = {git = "https://github.com/telegram-rs/telegram-bot"}
+telegram-bot-raw = {git = "https://github.com/telegram-rs/telegram-bot"}
+tokio = { version = "0.2", features = ["rt-core", "macros"] }

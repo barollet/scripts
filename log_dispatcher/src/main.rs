@@ -1,23 +1,28 @@
 use std::io;
 
-use reqwest::blocking::{multipart::Form, Client};
+use telegram_bot::types::refs::ChatId;
+use telegram_bot::Api;
+use telegram_bot_raw::requests::send_message::CanSendMessage;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // loading settings
     let mut settings = config::Config::new();
     settings
         .merge(config::File::with_name("LogDispatcherSettings"))
         .expect("Cannot load config from Settings.toml");
-    let client = Client::new();
 
-    let url = settings
-        .get_str("webhook_url")
-        .expect("Cannot load webhook url from config.");
+    let telegram_token = settings
+        .get_str("telegram_token")
+        .expect("Cannot load telegram bot token from config.");
+    let chat_id = settings
+        .get_int("telegram_chat_id")
+        .expect("Cannot load chat id from config");
 
-    // Sending test request
-    let form = Form::new().text("content", "Webhook collector started running.");
-    // TODO gracefully catch an error instead of panicking
-    client.post(&url).multipart(form).send().unwrap();
+    let api = Api::new(telegram_token);
+    let chat = ChatId::new(chat_id);
+
+    api.spawn(chat.text("Test message"));
 
     println!("Running...");
 
@@ -26,9 +31,8 @@ fn main() {
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
             Ok(_) => {
-                let form = Form::new().text("content", input);
-                // TODO gracefully catch an error instead of panicking
-                client.post(&url).multipart(form).send().unwrap();
+                println!("{}", input);
+                api.spawn(chat.text(input));
             }
             Err(error) => println!("error: {}", error),
         }
