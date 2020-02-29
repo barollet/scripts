@@ -5,7 +5,10 @@ node_endpoint = "wss://<etherum_node_endpoint>"
 recipient_address = "A6A9eB29e786B5233bD99C0bA28bE882fe954a0e"
 
 # round manager proxy address
-proxy_address = "3984fc4ceeef1739135476f625d36d6c35c40dc3"
+round_manager_proxy_address = "3984fc4ceeef1739135476f625d36d6c35c40dc3"
+
+# bonding manager proxy address
+bonding_manager_proxy_address = "511bc4556d823ae99630ae8de28b9b80df90ea2e"
 
 # delay in block before triggering an alert
 block_alert_delay = 50

@@ -10,4 +10,3 @@ edition = "2018"
 web3 = { git = "https://github.com/tomusdrw/rust-web3", features = ["ws"] }
 config = "0.10.1"
 tokio = { version = "0.2", features = ["rt-threaded", "macros"] }
-chrono = "0.4.10"

@@ -32,6 +32,10 @@ impl RoundDetector {
         round_detector
     }
 
+    pub fn get_current_round(&self) -> usize {
+        self.current_round.as_usize()
+    }
+
     fn compute_round_security_window_end(&mut self) {
         let start_block: U256 = self.query_constant_value("currentRoundStartBlock");
         let round_length: U256 = self.query_constant_value("roundLength");
