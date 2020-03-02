@@ -49,34 +49,16 @@ impl Init {
         let transcoder_address: String = self
             .settings
             .get_str("recipient_address")
-            .expect("Cannot load recipient address from config")
+            .expect("Cannot load recipient address from config");
+        transcoder_address
             .parse()
-            .expect("Cannot parse recipient address");
-
-        let mut bytes: Vec<u8> = vec![];
-        let mut chars = transcoder_address.chars();
-        while let Some(c_high) = chars.next() {
-            let c_low = chars.next().expect("Invalid transcoder address");
-            let mut byte_str = String::new();
-            byte_str.push(c_high);
-            byte_str.push(c_low);
-            bytes.push(u8::from_str_radix(&byte_str, 16).expect("Invalid transcoder address"));
-        }
-
-        Address::from_slice(&bytes)
+            .expect("Cannot parse transcoder address")
     }
 
     // Subscribing to reward() transactions
     pub fn reward_call_subscription(&self) -> SubscriptionStream<WS, Log> {
-        let reward_recipient_address = self
-            .settings
-            .get_str("recipient_address")
-            .expect("Cannot load recipient address from config")
-            .parse()
-            .expect("Cannot parse recipient address");
-
         let filter = FilterBuilder::default()
-            .address(vec![reward_recipient_address])
+            .address(vec![self.load_transcoder_address()])
             .build();
 
         self.web3
@@ -95,12 +77,11 @@ impl Init {
     }
 
     pub fn round_manager_contract_interface(&self) -> Contract<WS> {
-        let proxy_address = self
+        let proxy_address: String = self
             .settings
             .get_str("round_manager_proxy_address")
-            .expect("Cannot load round manager proxy address from config")
-            .parse()
-            .expect("Cannot parse proxy address");
+            .expect("Cannot load round manager proxy address from config");
+        let proxy_address: Address = proxy_address.parse().expect("Cannot parse proxy address");
 
         Contract::from_json(
             self.web3.eth(),
@@ -114,9 +95,8 @@ impl Init {
         let proxy_address = self
             .settings
             .get_str("bonding_manager_proxy_address")
-            .expect("Cannot load bonding manager proxy address from config")
-            .parse()
-            .expect("Cannot parse proxy address");
+            .expect("Cannot load bonding manager proxy address from config");
+        let proxy_address = proxy_address.parse().expect("Cannot parse proxy address");
 
         Contract::from_json(
             self.web3.eth(),

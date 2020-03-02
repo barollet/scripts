@@ -22,8 +22,6 @@ async fn main() {
     let api = Api::new(telegram_token);
     let chat = ChatId::new(chat_id);
 
-    api.spawn(chat.text("Test message"));
-
     println!("Running...");
 
     // Main loop redirecting stdin to a blocking post request

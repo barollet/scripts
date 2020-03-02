@@ -1,5 +1,5 @@
 # any webhook url to post stdio in a webhook
-telegram_token = "token"
+telegram_token = "956159806:AAFu5vCpPeZtrK0DhgTF6vgIQBenAsSf04M"
 
 # telegram chat id
-telegram_chat_id = 123
+telegram_chat_id = "-449647233"

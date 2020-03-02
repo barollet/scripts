@@ -35,7 +35,10 @@ async fn main() {
 
     // Subscribing to reward() transactions
     let mut reward_subscription = init.reward_call_subscription();
-    eprintln!("Subscribed to reward() call");
+    eprintln!(
+        "Subscribed to reward() call to address {}",
+        init.load_transcoder_address()
+    );
 
     // Subscribing to new block header
     let mut new_block_subscription = init.new_block_subscription();
@@ -43,11 +46,17 @@ async fn main() {
 
     // Round manager contract interface
     let round_manager_contract_interface = init.round_manager_contract_interface();
-    eprintln!("Round manager contract interface instanciated");
+    eprintln!(
+        "Round manager contract interface instanciated at address {}",
+        round_manager_contract_interface.address()
+    );
 
     // Bonding manager contract interface
     let bonding_manager_contract_interface = init.bonding_manager_contract_interface();
-    eprintln!("Bonding manager contract interface instanciated");
+    eprintln!(
+        "Bonding manager contract interface instanciated at address {}",
+        bonding_manager_contract_interface.address()
+    );
 
     // Shared value tracking if the reward call has been done
     let current_round_transaction_done = init.transaction_state();
@@ -74,11 +83,13 @@ async fn main() {
         let block_number: U256 = block_header.number.unwrap().as_usize().into();
         if round_detector.has_new_round_started(block_number) {
             current_round.store(round_detector.get_current_round(), Ordering::Release);
-            // Sending transaction message to stdout
-            println!("Started round {}", round_detector.get_current_round());
             // If the transaction was not done we missed the call
             if !current_round_transaction_done.load(Ordering::Acquire) {
-                println!("Missed reward call :exclamation: :exclamation:");
+                // If we missed the reward call of the last round
+                println!(
+                    "Missed reward call for round {}!!",
+                    round_detector.get_current_round() - 1
+                );
             }
             // set the transaction as not done for this new round
             current_round_transaction_done.store(false, Ordering::Release);
@@ -86,7 +97,10 @@ async fn main() {
             // Checks that the transaction has be done, otherwise triggers an alert
             if !current_round_transaction_done.load(Ordering::Acquire) {
                 // Triggers an alert on standard output
-                println!("Transaction has to be done :exclamation: :exclamation:");
+                println!(
+                    "Transaction has to be done for round {}!",
+                    round_detector.get_current_round()
+                );
             }
         }
         Ok(())
@@ -106,7 +120,6 @@ async fn main() {
             .wait()
             .unwrap();
                 let total_stake = convert_amount(total_stake, 18);
-                // Rewards claimed for round 1332 -> Transcoder 0xA6A9E... received 92.48 LPT for a total stake of 27187 LPT.
                 println!("Rewards claimed for round {} -> Transcoder {} received {} LPT for a total stake of {} LPT.", current_round, transcoder_address, value, total_stake);
                 println!("{}", url);
 
