@@ -1,10 +1,8 @@
-use std::sync::atomic::{AtomicBool, AtomicUsize};
-
 use web3::api::SubscriptionStream;
 use web3::contract::Contract;
 use web3::futures::Future;
 use web3::transports::EventLoopHandle;
-use web3::types::{Address, BlockHeader, FilterBuilder, Log, U256};
+use web3::types::{Address, BlockHeader, U256};
 
 use config::Config;
 
@@ -55,19 +53,6 @@ impl Init {
             .expect("Cannot parse transcoder address")
     }
 
-    // Subscribing to reward() transactions
-    pub fn reward_call_subscription(&self) -> SubscriptionStream<WS, Log> {
-        let filter = FilterBuilder::default()
-            .address(vec![self.load_transcoder_address()])
-            .build();
-
-        self.web3
-            .eth_subscribe()
-            .subscribe_logs(filter)
-            .wait()
-            .expect("Cannot subscribe to reward() calls")
-    }
-
     pub fn new_block_subscription(&self) -> SubscriptionStream<WS, BlockHeader> {
         self.web3
             .eth_subscribe()
@@ -106,16 +91,10 @@ impl Init {
         .expect("Cannot instanciate round manager interface")
     }
 
-    pub fn transaction_state(&self) -> AtomicBool {
-        AtomicBool::new(
-            self.settings
-                .get_bool("current_round_transaction_done")
-                .expect("Cannot load transaction initial state from config."),
-        )
-    }
-
-    pub fn current_round(&self) -> AtomicUsize {
-        AtomicUsize::new(0)
+    pub fn transaction_state(&self) -> bool {
+        self.settings
+            .get_bool("current_round_transaction_done")
+            .expect("Cannot load transaction initial state from config.")
     }
 
     pub fn safety_window(&self) -> U256 {
