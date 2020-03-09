@@ -13,7 +13,7 @@ use transaction_detector::TransactionDetector;
 
 // Converts a given amount to a token amount without decimals (as a owned string)
 // panic! if decimal is smaller than the string lenght (amount below 1)
-fn convert_amount(amount: U256, decimal: usize) -> String {
+fn convert_amount(amount: U256, decimal: usize, keep_decimal: usize) -> String {
     // converts the amount to string
     let mut string_amount = amount.to_string();
     let lenght = string_amount.len();
@@ -26,12 +26,16 @@ fn convert_amount(amount: U256, decimal: usize) -> String {
     } else {
         "0".to_owned()
     };
-    // point
-    output.push('.');
-    // decimal part
-    output.push_str(&string_amount);
+    if keep_decimal == 0 {
+        output
+    } else {
+        // point
+        output.push('.');
+        // decimal part
+        output.push_str(&string_amount.get(..keep_decimal).unwrap());
 
-    output
+        output
+    }
 }
 
 #[tokio::main]
@@ -112,17 +116,23 @@ async fn main() {
             let url = format!("https://etherscan.io/tx/{:#x}", transaction.hash);
             let current_round = round_detector.get_current_round();
 
-            let value = convert_amount(transaction.value, 18);
+            // Getting LPT value transfered in log
+            // Getting transaction receipt
+            let receipt = init.web3().eth().transaction_receipt(transaction.hash).wait().unwrap().unwrap();
+            let lpt_transfer_log = &receipt.logs[0];
+            let value = U256::from(lpt_transfer_log.data.0.as_slice());
+
+            let str_value = convert_amount(value, 18, 2);
             let total_stake: U256 = bonding_manager_contract_interface
                 .query("transcoderTotalStake", transcoder_address, None, contract::Options::default(), None)
                 .wait()
                 .unwrap();
-            let total_stake = convert_amount(total_stake, 18);
-            println!("Rewards claimed for round {} -> Transcoder {} received {} LPT for a total stake of {} LPT.", current_round, transcoder_address, value, total_stake);
+            let total_stake = convert_amount(total_stake, 18, 0);
+            println!("Rewards claimed for round {} -> Transcoder {} received {} LPT for a total stake of {} LPT.", current_round, transcoder_address, str_value, total_stake);
             println!("{}", url);
 
             // If the transaction is a success
-            if transaction.value != U256::zero() {
+            if value != U256::zero() {
                 eprintln!("Transaction success");
                 // sets the transaction as done
                 current_round_transaction_done = true;
